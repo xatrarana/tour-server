@@ -1,2 +1,8 @@
 node_modules/
 build/
+dockerfile
+.env 
+.git
+.gitignore
+.dockerignore
+compose.yaml

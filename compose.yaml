@@ -1,26 +1,26 @@
 version: '3.9'
 services:
-  api:
-    container_name: jawal_server
+  jawala_api:
+    container_name: jawala_server
     build:
       context: .
-      dockerfile: .dockerfile
+      dockerfile: dockerfile.local
     ports:
       - 3000:3000
     env_file:
-      - .env
+      - .env.local
+    volumes:
+      - ./src:/app/src
     depends_on:
-      - db
-  db:
-    container_name: jawal_db
-    image: mongodb/mongodb-community-server:latest
+      - jawala_db
+  jawala_db:
+    container_name: jawala_db
+    image: mongo:latest
+    restart: always
     ports:
       - 27017:27017
     volumes:
-      - jawa_volume:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
+      - jawla_volume:/data/db
       
 volumes:
-  jawa_volume:
+  jawla_volume: {}

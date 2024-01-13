@@ -30,7 +30,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      maxAge: 60000 * 60,
+      maxAge: 10 * 60000,
       signed: true,
     },
     store: MongoStore.create({
