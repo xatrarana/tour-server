@@ -1,7 +1,9 @@
 import os from 'os';
 import { app } from "./app";
 import connectDB from "./db/connectDB";
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
+import http from 'http';
+import { cacheDB } from './db/redis.db';
 
 const getLocalIpAddress = () => {
   const networkInterfaces = os.networkInterfaces();
@@ -22,9 +24,12 @@ const localUrl = `http://localhost:${PORT}`;
 const localIpAddress = getLocalIpAddress();
 const networkUrl = `http://${localIpAddress}:${PORT}`;
 
+const server = http.createServer(app);
+
 connectDB()
   .then(() => {
-    app.listen(PORT, () => console.log(`⚙️ local - ${localUrl} \n⚙️ network - ${networkUrl}`));
+    cacheDB();
+    server.listen(PORT, () => console.log(`⚙️  local - ${localUrl} \n⚙️  network - ${networkUrl}`));
   })
   .catch((error) => {
     console.log(error);

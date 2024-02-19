@@ -70,3 +70,28 @@ export type TVideoSchema = {
   title: string;
   link: string;
 };
+
+interface Profile {
+  provider: string;
+  id: string;
+  displayName: string;
+  username?: string | undefined;
+  name?:
+      | {
+          familyName: string;
+          givenName: string;
+          middleName?: string | undefined;
+      }
+      | undefined;
+  emails?:
+      | Array<{
+          value: string;
+          type?: string | undefined;
+      }>
+      | undefined;
+  photos?:
+      | Array<{
+          value: string;
+      }>
+      | undefined;
+}

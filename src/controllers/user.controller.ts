@@ -4,6 +4,8 @@ import { ApiError } from "../utils/ApiError";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { IUser } from "../utils/types";
+import jwt, { JwtHeader, JwtPayload } from "jsonwebtoken";
+import { generateAccessAndRefereshTokens } from "../utils/generateTokens";
 
 export const USERS = asyncHandler(async (_, res: Response) => {
   try {
@@ -22,57 +24,25 @@ export const USERS = asyncHandler(async (_, res: Response) => {
   }
 });
 
-export const REGISTER = asyncHandler(async (req: Request, res: Response) => {
+export const REGISTER = asyncHandler(async (req: Request, res: Response,next) => {
   const {
     body: { username, fullname, email, password, confirmpassword },
   } = req;
-  if (
-    [username, fullname, email, password, confirmpassword].some(
-      (field) => !field || field?.trim() === "",
-    )
-  ) {
-    res
-      .status(400)
-      .json(
-        new ApiError(400, "All fields are required.", [
-          "Username",
-          "Fullname",
-          "Email",
-          "Password",
-          "Confirm password",
-        ]),
-      );
-  }
-
-  if (password !== confirmpassword) {
-    res
-      .status(400)
-      .json(
-        new ApiError(400, "Passwords do not match.", [
-          "Password",
-          "Confirm password",
-        ]),
-      );
-  }
 
   const user = await User.findOne({
     $or: [{ username }, { email }],
   });
-
-  if (user) {
-    res
-      .status(403)
-      .json(new ApiError(403, "user with credentials already exists."));
-  }
-
-  const newUser = await User.create({
-    username,
-    fullName: fullname,
-    email,
-    password,
-  });
-
-  const createdUser = await User.findById(newUser._id);
+  try {
+    if (user) {
+      throw new ApiError(403, "user with credentials already exists.")
+    }
+    const newUser = await User.create({
+      username,
+      fullName: fullname,
+      email,
+      password,
+    });
+    const createdUser = await User.findById(newUser._id);
   if (createdUser === null) {
     throw new ApiError(500, "Error creating user.");
   }
@@ -82,6 +52,9 @@ export const REGISTER = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse<IUser>(201, "User successfully created.", createdUser),
     );
+  } catch (error) {
+    next(error)
+  }
 });
 
 
@@ -113,3 +86,97 @@ export const changeCurrentPassword = asyncHandler(async(req:Request,res:Response
      next(error) 
   }
 })
+
+
+export const updateAccountDetails = asyncHandler(
+  async(req:any,res:Response,next:NextFunction)=>{
+    const {id} = req.params;
+    const {body} = req
+    try {
+
+     const user =  await User.findOne({
+        username: body.username
+      })
+
+      if(user){
+        throw new ApiError(400,"username already taken.",[{param:"username"}])
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+      {
+        $set: {...body}
+      },{new:true})
+
+      if(updatedUser === null){
+        throw new ApiError(500,"Error updating user.")
+      }
+      req.user = updatedUser
+      res.status(200).json(new ApiResponse(200,"User successfully updated.",updatedUser))
+    } catch (error) {
+      next(error)
+    }
+  }
+);
+
+export const deleteAccount = asyncHandler(
+  async (req: any, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    try {
+      const deletedUser = await User.findByIdAndDelete(id);
+      if (deletedUser === null) {
+        throw new ApiError(500, "Error deleting user.");
+      }
+      res
+        .status(200)
+        .json(
+          new ApiResponse<IUser>(
+            200,
+            "User successfully deleted.",
+            deletedUser,
+          ),
+        );
+    } catch (error) {
+      next(error);
+    }
+  }
+)
+
+
+
+export const updateRefreshToken = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    if (!incommingRefreshToken) throw new ApiError(401, "unauthorized request");
+
+    console.log(incommingRefreshToken)
+    try {
+      const payload = jwt.verify(
+        incommingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET!,
+      ) as { _id: string };
+      
+      const user = await User.findById(payload._id);
+      if (!user) throw new ApiError(401, "invalid refresh token");
+      const {accessToken,refreshToken} = await generateAccessAndRefereshTokens(user?._id)
+      const options = {
+        httpOnly: true,
+        secure: true
+    }
+      
+    res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                "Access token refresheda",
+                {accessToken, refreshToken: refreshToken},
+            )
+        )
+    } catch (error) {
+      next(error);
+    }
+  }
+);

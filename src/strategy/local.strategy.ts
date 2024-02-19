@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiError";
-import { IUserDocument, IUserResponse } from "../utils/types";
+import {  IUserResponse } from "../utils/types";
 
 
 passport.serializeUser((user: any, done) => {
@@ -12,7 +12,7 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (_id: string, done) => {
   try {
     const user = await User.findById(_id);
-    if (!user) throw new Error("user not found");
+    if (!user) return done(new ApiError(404, "User not found"));
     done(null, user);
   } catch (error) {
     done(error, false);
@@ -20,15 +20,16 @@ passport.deserializeUser(async (_id: string, done) => {
 });
 
 export default passport.use(
-  new Strategy(async (username, password, done) => {
+  new Strategy(async (username:string, password:string, done) => {
     try {
       const user: IUserResponse  = await User.findOne({ username }).select("+password");
       if (!user) {
-        throw new ApiError(403, "Invalid credentials.",[{params: "no user found."}]);
+        return done(new ApiError(400,"Invalid Credentials",[{params:"username",message:"Incorrect Username"}]), false)
       }
       const isValidPassword = await user.isPasswordCorrect(password);
       if (!isValidPassword) {
-        throw new ApiError(403, "Invalid credentials.",[{params: "password is incorrect."}]);
+        return done(new ApiError(400,"Invalid Credentials",[{params:"password",message:"Incorrect Password"}]), false)
+
       }
       done(null, user);
     } catch (error) {
@@ -36,3 +37,5 @@ export default passport.use(
     }
   }),
 );
+
+

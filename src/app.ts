@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-import type { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -12,6 +11,8 @@ import "./strategy/local.strategy";
 import { ApiError } from "./utils/ApiError";
 import MongoStore from "connect-mongo";
 const app = express();
+import compression = require("compression");
+import ErrorHandlerMiddleware from "./middlewares/errorhandler.middleware";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,6 +23,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(compression());
 app.use(cookieParser(process.env.COOKIE_SECRECT));
 app.use(
   session({
@@ -35,6 +37,7 @@ app.use(
     },
     store: MongoStore.create({
       mongoUrl: `${process.env.DATABASE_URL}/${process.env.DATABASE_NAME}`,
+      touchAfter: 24 * 3600,
       autoRemove: "interval",
       autoRemoveInterval: 10, // In minutes. Default
     }),
@@ -43,21 +46,17 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use("/api/v1", routers);
-
 app.get('/',(req,res)=>{
   res.sendStatus(200)
 })
 app.get("/health-check", (req, res) => {
   res.status(200).json(new ApiResponse<null>(200, "server is up!!"));
 });
+app.all('*', (req, res,next) => next(new ApiError(400,"Resource not found")))
+app.use(ErrorHandlerMiddleware);
 
-app.get('*', (req, res) => {res.sendStatus(404)});
 
-app.use((error: Error, req: Request, res: Response) => {
-  if (error instanceof ApiError) {
-    res.status(error.statusCode).json(new ApiError(error.statusCode, error.message, error.errors));
-  } else {
-    res.status(500).json(new ApiError(500, 'Internal Server Error', [{ error: error.name }, error.message]));
-  }
-});
+
+
+
 export { app };
