@@ -28,7 +28,7 @@ const server = http.createServer(app);
 
 connectDB()
   .then(() => {
-    cacheDB();
+    // cacheDB();
     server.listen(PORT, () => console.log(`⚙️  local - ${localUrl} \n⚙️  network - ${networkUrl}`));
   })
   .catch((error) => {
