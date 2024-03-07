@@ -8,6 +8,8 @@ type TPlaceParams = {
       latitude: number,
       longitude: number,
       category: string,
+      thumbnail: File;
+      images: File[];
 }
 
 export const PlaceValidationSchema = JOI.object<TPlaceParams>({ 
@@ -18,6 +20,8 @@ export const PlaceValidationSchema = JOI.object<TPlaceParams>({
         latitude: JOI.number().required().messages({ latitude: "Latitude is required" }),
         longitude: JOI.number().required().messages({ longitude: "Longitude is required" }),
         category: JOI.string().required().messages({ category: "Category is required" }),
+        thumbnail: JOI.any(), // Validate the thumbnail object
+        images: JOI.any(), // Validate the thumbnail object
     })
 
 export const PlaceRatingValidationSchema = JOI.object<{stars: number}>({

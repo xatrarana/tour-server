@@ -1,8 +1,6 @@
 import { Router } from "express";
 import {  REGISTER, USERS, deleteAccount, updateAccountDetails, updateRefreshToken } from "../controllers/user.controller";
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { generatePasswordResetToken, isLoggedIn, isLoggedOut, isOwner } from "../middlewares/auth.middleware";
+import { generatePasswordResetToken, isAdmin, isLoggedIn, isLoggedOut, isOwner } from "../middlewares/auth.middleware";
 import { schemaValidation } from "../middlewares/schemavalidation.middleware";
 import { RegisterValidationSchema, UpdateUserAccountValidationSchema } from "../validation/user.validation";
 import { checkActiveSession } from "../middlewares/active-session.middleware";
@@ -11,7 +9,7 @@ const router = Router();
 router.get("/", isLoggedIn,checkActiveSession, USERS);
 
 router.post("/signup",
-isLoggedOut,
+isAdmin,
 schemaValidation(RegisterValidationSchema), 
 REGISTER
 );
@@ -24,10 +22,5 @@ router.post("/password/new",generatePasswordResetToken,(req,res)=>{
 })
 
 
-router.get(
-  "/error-check",
-  asyncHandler(async (_) => {
-    throw new ApiError(500, "Something went wrong");
-  }),
-);
+
 export default router;

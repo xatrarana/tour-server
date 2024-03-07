@@ -1,6 +1,7 @@
 import { ErrorRequestHandler } from "express";
 import { ApiError } from "../utils/ApiError";
 import {ValidationError} from 'joi'
+import { MulterError } from "multer";
 const ErrorHandlerMiddleware: ErrorRequestHandler = (err: unknown, req, res, next) => {
     if (err instanceof ApiError) {
         res.status(err.statusCode).json({
@@ -14,6 +15,14 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = (err: unknown, req, res, nex
         res.status(400).json({
             error: err.message,
             errors: err.details,
+            status: 400,
+            success: false,
+            timestamp: new Date(),
+        });
+      } else if(err instanceof MulterError){
+        res.status(400).json({
+            error: err.message,
+            errors: err.field,
             status: 400,
             success: false,
             timestamp: new Date(),

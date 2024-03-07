@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema<IUser, TUserModel, IUserDocument>(
       trim: true,
       index: true,
     },
-    fullName: {
+    fullname: {
       type: String,
       required: true,
       trim: true,
@@ -84,7 +84,7 @@ userSchema.methods.generateAccessToken = async function () {
       _id: this._id,
       email: this.email,
       username: this.username,
-      fullName: this.fullName,
+      fullName: this.fullname,
     },
     process.env.ACCESS_TOKEN_SECRET as string,
     {

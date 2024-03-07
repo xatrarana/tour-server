@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { IUser } from "../utils/types";
-import jwt, { JwtHeader, JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { generateAccessAndRefereshTokens } from "../utils/generateTokens";
 
 export const USERS = asyncHandler(async (_, res: Response) => {
@@ -26,7 +26,7 @@ export const USERS = asyncHandler(async (_, res: Response) => {
 
 export const REGISTER = asyncHandler(async (req: Request, res: Response,next) => {
   const {
-    body: { username, fullname, email, password, confirmpassword },
+    body: { username, fullname, email, password, role },
   } = req;
 
   const user = await User.findOne({
@@ -38,9 +38,10 @@ export const REGISTER = asyncHandler(async (req: Request, res: Response,next) =>
     }
     const newUser = await User.create({
       username,
-      fullName: fullname,
+      fullname,
       email,
       password,
+      role
     });
     const createdUser = await User.findById(newUser._id);
   if (createdUser === null) {
@@ -149,7 +150,6 @@ export const updateRefreshToken = asyncHandler(
     const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!incommingRefreshToken) throw new ApiError(401, "unauthorized request");
 
-    console.log(incommingRefreshToken)
     try {
       const payload = jwt.verify(
         incommingRefreshToken,

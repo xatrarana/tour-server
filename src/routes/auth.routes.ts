@@ -1,6 +1,6 @@
 import { Router} from "express";
 import { isAdmin, isLoggedIn, isLoggedOut } from "../middlewares/auth.middleware";
-import { logout, signup, whoami } from "../controllers/auth.controller";
+import { logout, signin, whoami } from "../controllers/auth.controller";
 import passport from "passport";
 import { LoginValidationSchema} from "../validation/user.validation";
 import { schemaValidation } from "../middlewares/schemavalidation.middleware";
@@ -10,10 +10,11 @@ const router = Router();
 
 router.post(
   "/signin",
+  isAdmin,
   isLoggedOut,
   schemaValidation(LoginValidationSchema),
   passport.authenticate('local'),
-  signup,
+  signin,
 );
 router.post("/logout", isLoggedIn,checkActiveSession, logout);
 

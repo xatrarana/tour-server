@@ -32,15 +32,21 @@ export const isLoggedOut = (
 
 
 }
-export const isAdmin = (
+export const isAdmin = async (
   request: Request,
   response: Response,
   next: NextFunction,
 ) => {
-  if (request.user && (request.user as IUser).role === ROLE.ADMIN) {
+  const {username} = request.body;
+  try {
+    const user = await User.findOne({username});
+    if (!user || user.role != ROLE.ADMIN) {
+       return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not admin' }]))
+    }
     next();
-  } else {
-    response.sendStatus(403);
+  } catch (error) {
+    console.log(error)
+    next(error)
   }
 };
 
@@ -58,7 +64,6 @@ export const verifyJWT = asyncHandler(async (req:any, _, next) => {
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");
     }
-    console.log(user)
     next();
   } catch (error: any) {
     throw new ApiError(401, error?.message || "Invalid access token");
@@ -86,7 +91,7 @@ export const generatePasswordResetToken = asyncHandler(
       if (!user) throw new ApiError(404, "User not found");
       const token = await user?.generatePasswordResetToken(user._id);
       const localToken = `${token}-${Date.now() + 5 * 60000}`
-      await sendEmail(user?.fullName!, user?.email!, localToken)
+      await sendEmail(user?.fullname!, user?.email!, localToken)
       next()
     } catch (error) {
       next(error)

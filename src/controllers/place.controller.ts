@@ -1,3 +1,4 @@
+import mongoose, { MongooseError } from "mongoose";
 import { Place } from "../models/place.model";
 import { ApiError } from "../utils/ApiError";
 import { ApiResponse } from "../utils/ApiResponse";
@@ -58,26 +59,7 @@ export const createPlace = asyncHandler(async (req: any, res) => {
     },
   } = req;
 
-  if (
-    [title, wardno, description, location, latitude, longitude, category].some(
-      (field) => !field || field?.trim() === "",
-    )
-  ) {
-    throw new ApiError(400, "All fields are required.", [
-      {
-        msg: "Empty fields are not allowed",
-        param: [
-          "title",
-          "wardno",
-          "description",
-          "location",
-          "latitude",
-          "longitude",
-          "category",
-        ],
-      },
-    ]);
-  }
+
 
   const slug_name = generateSlugName(title);
   const place = await Place.findOne({ slug_name });
@@ -124,11 +106,19 @@ export const createPlace = asyncHandler(async (req: any, res) => {
 export const getPlace = asyncHandler(
   async(req, res,next) => {
     const placeId = req.params.id;
+    if (!placeId) {
+      return next(new ApiError(400, 'Invalid place ID format'));
+    }
     try {
       const place = await Place.findById(placeId);
       if(!place) throw new ApiError(404,"Place not found");
       res.status(200).json(new ApiResponse(200,"Place fetched successfully",place))
     } catch (error) {
+      if(error instanceof MongooseError){
+        return next(new ApiError(400, 'Invalid Place ID.',[{
+          params: "Invalid Operation."
+        }]))
+      }
       next(error)
     }
   }
@@ -182,7 +172,6 @@ export const updatePlace = asyncHandler(
   async (req,res,next) => {
     const placeId = req.params.id;
     const {body} = req;
-    console.log({...body})
     try {
       const place = await Place.findByIdAndUpdate(
         placeId,

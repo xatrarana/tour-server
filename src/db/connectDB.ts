@@ -1,5 +1,7 @@
 import { connect } from "mongoose";
 
+
+
 const connectDB = async () => {
   // const DBURI = `${process.env.DATABASE_URL!}/${process.env.DATABASE_NAME!}`;
   const DBURI = process.env.DATABASE_URL as string;

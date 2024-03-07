@@ -6,7 +6,7 @@ export enum ROLE {
 }
 
 export interface IUser {
-  fullName: string;
+  fullname: string;
   username: string;
   email: string;
   phone?: string;
@@ -37,7 +37,7 @@ export type TDecodedToken = {
   _id: string;
   email: string;
   username: string;
-  fullName: string;
+  fullname: string;
   iat: number;
   exp: number;
 };

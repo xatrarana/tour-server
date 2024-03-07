@@ -13,13 +13,15 @@ import MongoStore from "connect-mongo";
 const app = express();
 import compression = require("compression");
 import ErrorHandlerMiddleware from "./middlewares/errorhandler.middleware";
+import { asyncHandler } from "./utils/asyncHandler";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(
   cors({
-    origin: process.env.CORS_URL,
+    // origin: process.env.CORS_URL,
+    origin: 'http://localhost:4000/',
     credentials: true,
   }),
 );
@@ -32,14 +34,18 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      maxAge: 10 * 60000,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
       signed: true,
+      sameSite: 'strict',
+      // secure: true
     },
     store: MongoStore.create({
-      mongoUrl: `${process.env.DATABASE_URL}/${process.env.DATABASE_NAME}`,
+      // mongoUrl: `${process.env.DATABASE_URL}/${process.env.DATABASE_NAME}`,
+      mongoUrl: process.env.DATABASE_URL,
       touchAfter: 24 * 3600,
       autoRemove: "interval",
-      autoRemoveInterval: 10, // In minutes. Default
+      autoRemoveInterval: 24 * 60, // In 1 day. Default
     }),
   }),
 );
@@ -52,6 +58,13 @@ app.get('/',(req,res)=>{
 app.get("/health-check", (req, res) => {
   res.status(200).json(new ApiResponse<null>(200, "server is up!!"));
 });
+app.get(
+  "/error-check",
+  asyncHandler(async (_) => {
+    throw new ApiError(500, "Internal Server Error",[{msg: "Error responds with 500 status code."}]);
+  }),
+);
+
 app.all('*', (req, res,next) => next(new ApiError(400,"Resource not found")))
 app.use(ErrorHandlerMiddleware);
 

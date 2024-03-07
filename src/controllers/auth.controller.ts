@@ -6,18 +6,19 @@ import { generateAccessAndRefereshTokens } from "../utils/generateTokens";
 import { ApiResponse } from "../utils/ApiResponse";
 import { User } from "../models/user.model";
 
-export const signup: RequestHandler = asyncHandler(
+export const signin: RequestHandler = asyncHandler(
     async(req: any,res,next) => {
             const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
                 req.user._id,
             );
+            const user = await User.findById(req.user._id)
             res
               .status(200)
-              .cookie("accessToken", accessToken, { httpOnly: true })
-              .cookie("refreshToken", refreshToken, { httpOnly: true })
+              .cookie("accessToken", accessToken, { httpOnly: true, path: '/', sameSite: 'none' })
+              .cookie("refreshToken", refreshToken, { httpOnly: true, path: '/', sameSite:'none' })
               .json(
                 new ApiResponse(200, "Login successful", 
-                  { accessToken,refreshToken },
+                  { accessToken,refreshToken, user },
                 ),
               );
           
@@ -33,14 +34,16 @@ export const logout =
             { $unset: { refreshToken: 1 } },
             { new: true },
           );
-          console.log(updatedUser);
           if (!updatedUser) {
             throw new ApiError(500,"Failed to update user's refresh token")
           }
-          await req.logout((error: any) => {
+         const response  =  await req.logout((error: any) => {
             if (error) return next(error);
+            res.clearCookie("connect.sid")
+            res.clearCookie("accessToken")
+            res.clearCookie("refreshToken")
+            res.status(200).json(new ApiResponse(200, "Logout successful"));
           });
-          res.status(200).clearCookie("accessToken").clearCookie("refreshToken").json(new ApiResponse(200, "Logout successful"));
         } catch (error) {
           next(error);
         }
