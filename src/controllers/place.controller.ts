@@ -115,7 +115,7 @@ export const getPlace = asyncHandler(
       res.status(200).json(new ApiResponse(200,"Place fetched successfully",place))
     } catch (error) {
       if(error instanceof MongooseError){
-        return next(new ApiError(400, 'Invalid Place ID.',[{
+        return next(new ApiError(400, 'No valid place found.',[{
           params: "Invalid Operation."
         }]))
       }

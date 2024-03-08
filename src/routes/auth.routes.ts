@@ -10,11 +10,18 @@ const router = Router();
 
 router.post(
   "/signin",
-  isAdmin,
   isLoggedOut,
   schemaValidation(LoginValidationSchema),
   passport.authenticate('local'),
-  signin,
+  signin, 
+);
+router.post(
+  "/signin/ad",
+  isLoggedOut,
+  isAdmin,
+  schemaValidation(LoginValidationSchema),
+  passport.authenticate('local'),
+  signin, 
 );
 router.post("/logout", isLoggedIn,checkActiveSession, logout);
 

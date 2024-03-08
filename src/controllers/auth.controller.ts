@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError";
 import { generateAccessAndRefereshTokens } from "../utils/generateTokens";
 import { ApiResponse } from "../utils/ApiResponse";
 import { User } from "../models/user.model";
+import { ROLE } from "../utils/types";
 
 export const signin: RequestHandler = asyncHandler(
     async(req: any,res,next) => {
@@ -12,15 +13,24 @@ export const signin: RequestHandler = asyncHandler(
                 req.user._id,
             );
             const user = await User.findById(req.user._id)
-            res
-              .status(200)
-              .cookie("accessToken", accessToken, { httpOnly: true, path: '/', sameSite: 'none' })
-              .cookie("refreshToken", refreshToken, { httpOnly: true, path: '/', sameSite:'none' })
-              .json(
-                new ApiResponse(200, "Login successful", 
-                  { accessToken,refreshToken, user },
-                ),
-              );
+
+            if (user?.role === ROLE.ADMIN) {
+              res.setHeader('x-api-key', process.env.API_KEY!);
+              res.setHeader('Authorization', `Bearer ${accessToken}`);
+              res
+                  .status(200)
+                  .cookie("accessToken", accessToken, { httpOnly: true, path: '/', sameSite: 'none', secure:true })
+                  .cookie("refreshToken", refreshToken, { httpOnly: true, path: '/', sameSite: 'none', secure:true })
+                  .json(
+                      new ApiResponse(200, "Login successful", { accessToken, refreshToken, user })
+                  );
+          } else {
+              res
+                  .status(200)
+                  .json(
+                      new ApiResponse(200, "Login successful", { accessToken, refreshToken, user })
+                  );
+          }
           
     }
 )

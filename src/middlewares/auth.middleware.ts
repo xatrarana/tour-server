@@ -32,21 +32,26 @@ export const isLoggedOut = (
 
 
 }
-export const isAdmin = async (
-  request: Request,
+export const isAdmin = async ( 
+  request: any,
   response: Response,
   next: NextFunction,
 ) => {
-  const {username} = request.body;
   try {
-    const user = await User.findOne({username});
-    if (!user || user.role != ROLE.ADMIN) {
-       return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not admin' }]))
+    const { username } = request.body;
+    const { user } = request;
+    if (username) {
+      const foundUser = await User.findOne({ username });
+      if (!foundUser || foundUser.role !== ROLE.ADMIN) {
+        return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not an admin' }]));
+      }
+    } else if (!user && user.role !== ROLE.ADMIN) {
+      return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not an admin' }]));
     }
     next();
   } catch (error) {
-    console.log(error)
-    next(error)
+    console.error(error);
+    next(error);
   }
 };
 

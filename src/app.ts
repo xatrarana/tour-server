@@ -14,6 +14,7 @@ const app = express();
 import compression = require("compression");
 import ErrorHandlerMiddleware from "./middlewares/errorhandler.middleware";
 import { asyncHandler } from "./utils/asyncHandler";
+import { isAdmin } from "./middlewares/auth.middleware";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -38,7 +39,7 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       signed: true,
       sameSite: 'strict',
-      // secure: true
+      //secure: true
     },
     store: MongoStore.create({
       // mongoUrl: `${process.env.DATABASE_URL}/${process.env.DATABASE_NAME}`,
@@ -58,6 +59,9 @@ app.get('/',(req,res)=>{
 app.get("/health-check", (req, res) => {
   res.status(200).json(new ApiResponse<null>(200, "server is up!!"));
 });
+app.get('/fuckup',isAdmin, (req,res) => {
+  res.sendStatus(200)
+})
 app.get(
   "/error-check",
   asyncHandler(async (_) => {
