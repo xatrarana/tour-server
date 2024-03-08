@@ -15,6 +15,7 @@ import compression = require("compression");
 import ErrorHandlerMiddleware from "./middlewares/errorhandler.middleware";
 import { asyncHandler } from "./utils/asyncHandler";
 import { isAdmin } from "./middlewares/auth.middleware";
+import path = require("path");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,7 +55,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use("/api/v1", routers);
 app.get('/',(req,res)=>{
-  res.sendStatus(200)
+ res.sendFile(path.join(__dirname,'public','index.html'))
 })
 app.get("/health-check", (req, res) => {
   res.status(200).json(new ApiResponse<null>(200, "server is up!!"));

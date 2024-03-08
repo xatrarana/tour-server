@@ -24,7 +24,9 @@ router.post(
   signin, 
 );
 router.post("/logout", isLoggedIn,checkActiveSession, logout);
-
+router.get('/session',(req,res) =>{
+  res.json({isAuthenticated: req.isAuthenticated(), sessionId: req.sessionID, user: req.user})
+})
 router.get("/me", isLoggedIn,checkActiveSession, whoami);
 
 router.get("/admin", isAdmin, (req, res) => {
