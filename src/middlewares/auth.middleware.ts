@@ -38,23 +38,32 @@ export const isAdmin = async (
   next: NextFunction,
 ) => {
   try {
-    const { username } = request.body;
     const { user } = request;
-    if (username) {
-      const foundUser = await User.findOne({ username });
-      if (!foundUser || foundUser.role !== ROLE.ADMIN) {
-        return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not an admin' }]));
-      }
-    } else if (!user && user.role !== ROLE.ADMIN) {
+    if (request.isAuthenticated() && user && user.role === ROLE.USER) {
       return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not an admin' }]));
     }
     next();
   } catch (error) {
-    console.error(error);
     next(error);
   }
 };
 
+export const dashBoardAuthCheck = asyncHandler(async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { username } = request.body;
+    const user = await User.findOne({username});
+   if(user?.role !== ROLE.ADMIN){
+    return next(new ApiError(403, 'Forbidden request', [{ message: 'You are not an admin' }]));
+   }
+    next();
+  } catch (error) {
+    next(error);
+  }
+})
 export const verifyJWT = asyncHandler(async (req:any, _, next) => {
   try {
     const token =

@@ -9,6 +9,11 @@ const router = Router();
 router.get("/", isLoggedIn,checkActiveSession, USERS);
 
 router.post("/signup",
+schemaValidation(RegisterValidationSchema), 
+REGISTER
+);
+router.post("/signup/ad",
+isLoggedIn,
 isAdmin,
 schemaValidation(RegisterValidationSchema), 
 REGISTER
@@ -17,6 +22,7 @@ REGISTER
 router.post('/refresh-token',isLoggedOut,updateRefreshToken)
 router.patch('/update/:id',isLoggedIn,checkActiveSession,schemaValidation(UpdateUserAccountValidationSchema),isOwner,updateAccountDetails)
 router.delete('/delete/:id',isLoggedIn,checkActiveSession,isOwner,deleteAccount)
+router.delete('/delete/ad/:id',isLoggedIn,checkActiveSession,isAdmin,deleteAccount)
 router.post("/password/new",generatePasswordResetToken,(req,res)=>{
   res.status(200).json({message:"Password reset token sent to your email."})
 })

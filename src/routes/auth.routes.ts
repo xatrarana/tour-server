@@ -1,5 +1,5 @@
 import { Router} from "express";
-import { isAdmin, isLoggedIn, isLoggedOut } from "../middlewares/auth.middleware";
+import { dashBoardAuthCheck, isAdmin, isLoggedIn, isLoggedOut } from "../middlewares/auth.middleware";
 import { logout, signin, whoami } from "../controllers/auth.controller";
 import passport from "passport";
 import { LoginValidationSchema} from "../validation/user.validation";
@@ -18,8 +18,8 @@ router.post(
 router.post(
   "/signin/ad",
   isLoggedOut,
-  isAdmin,
   schemaValidation(LoginValidationSchema),
+  dashBoardAuthCheck,
   passport.authenticate('local'),
   signin, 
 );
