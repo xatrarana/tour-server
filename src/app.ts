@@ -22,8 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(
   cors({
-    // origin: process.env.CORS_URL,
-    origin: 'http://localhost:4000/',
+    origin: process.env.CORS_URL,
     credentials: true,
   }),
 );
