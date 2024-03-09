@@ -3,6 +3,7 @@ import { Strategy } from "passport-local";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiError";
 import {  IUserResponse } from "../utils/types";
+import UserProfile from "../models/profile.model";
 
 
 passport.serializeUser((user: any, done) => {
@@ -11,9 +12,17 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (_id: string, done) => {
   try {
-    const user = await User.findById(_id);
-    if (!user) return done(new ApiError(404, "User not found"));
-    done(null, user);
+    const user = await User.findById(_id)
+    if (user) {
+      return done(null, user);
+    } else {
+      const userProfile = await UserProfile.findById(_id);
+      if (!userProfile) {
+        return done(new ApiError(404, "User not found again"));
+      }else {
+        return done(null,userProfile);
+      }
+    }
   } catch (error) {
     done(error, false);
   }

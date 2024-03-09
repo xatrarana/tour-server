@@ -8,13 +8,13 @@ import { ApiResponse } from "./utils/ApiResponse";
 import passport from "passport";
 import routers from "./routes";
 import "./strategy/local.strategy";
+import './strategy/google.strategy'
 import { ApiError } from "./utils/ApiError";
 import MongoStore from "connect-mongo";
 const app = express();
 import compression = require("compression");
 import ErrorHandlerMiddleware from "./middlewares/errorhandler.middleware";
 import { asyncHandler } from "./utils/asyncHandler";
-import { isAdmin } from "./middlewares/auth.middleware";
 import path = require("path");
 
 app.use(express.json());
@@ -52,16 +52,16 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(passport.authenticate('session'))
 app.use("/api/v1", routers);
+
 app.get('/',(req,res)=>{
  res.sendFile(path.join(__dirname,'public','index.html'))
 })
 app.get("/health-check", (req, res) => {
   res.status(200).json(new ApiResponse<null>(200, "server is up!!"));
 });
-app.get('/fuckup',isAdmin, (req,res) => {
-  res.sendStatus(200)
-})
+
 app.get(
   "/error-check",
   asyncHandler(async (_) => {
@@ -69,7 +69,7 @@ app.get(
   }),
 );
 
-app.all('*', (req, res,next) => next(new ApiError(400,"Resource not found")))
+app.all('*', (req, res,next) => next(new ApiError(400,"Resource not found",[{path: req.path}])))
 app.use(ErrorHandlerMiddleware);
 
 

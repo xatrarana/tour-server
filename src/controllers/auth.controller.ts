@@ -52,6 +52,7 @@ export const logout =
             res.clearCookie("connect.sid")
             res.clearCookie("accessToken")
             res.clearCookie("refreshToken")
+            res.clearCookie('state')
             res.status(200).json(new ApiResponse(200, "Logout successful"));
           });
         } catch (error) {

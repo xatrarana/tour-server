@@ -6,17 +6,20 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { IUser } from "../utils/types";
 import jwt from "jsonwebtoken";
 import { generateAccessAndRefereshTokens } from "../utils/generateTokens";
+import UserProfile from "../models/profile.model";
 
 export const USERS = asyncHandler(async (_, res: Response) => {
   try {
     const users = await User.find();
+    const profileUsers = await UserProfile.find()
+    const data = [...users,...profileUsers]
     res
       .status(200)
       .json(
-        new ApiResponse<IUser[]>(
+        new ApiResponse(
           200,
           "Users successfully fetched.",
-          users ?? null,
+          data ?? null,
         ),
       );
   } catch (error: any) {

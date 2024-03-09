@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { checkApiKey, isLoggedIn, verifyJWT } from "../middlewares/auth.middleware";
+import { authenticateRequest, checkApiKey, isLoggedIn, verifyJWT } from "../middlewares/auth.middleware";
 import { PLACES, createPlace, deletePlace, getPlace, rating, updatePlace } from "../controllers/place.controller";
 import { upload } from "../middlewares/multer.middleware";
 import { checkFileSize } from "../middlewares/filesize.middleware";
@@ -8,10 +8,9 @@ import { PartialPlaceUpdateValidationSchema, PlaceRatingValidationSchema, PlaceV
 import { checkActiveSession } from "../middlewares/active-session.middleware";
 const router = Router();
 
-// router.get("/", isLoggedIn,checkActiveSession, verifyJWT, PLACES);
-router.get("/", checkApiKey, PLACES);
+router.get("/", authenticateRequest, PLACES);
 
-router.get('/:id', isLoggedIn,checkActiveSession, verifyJWT, getPlace)
+router.get('/:id',authenticateRequest, getPlace)
 router.post(
   "/create",
   isLoggedIn,
@@ -24,7 +23,7 @@ router.post(
   createPlace,
 );
 
-router.patch("/:id/rate", isLoggedIn,checkActiveSession, verifyJWT, schemaValidation(PlaceRatingValidationSchema),  rating);
+router.patch("/:id/rate",authenticateRequest, schemaValidation(PlaceRatingValidationSchema),  rating);
 router.patch("/:id/update", isLoggedIn,checkActiveSession, verifyJWT,schemaValidation(PartialPlaceUpdateValidationSchema), updatePlace);
 router.delete('/:id/clear', isLoggedIn,checkActiveSession, verifyJWT, deletePlace)
 export default router;

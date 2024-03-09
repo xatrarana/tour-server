@@ -25,12 +25,19 @@ router.post(
 );
 router.post("/logout", isLoggedIn,checkActiveSession, logout);
 router.get('/session',(req,res) =>{
-  res.json({isAuthenticated: req.isAuthenticated(), sessionId: req.sessionID, user: req.user})
+  res.cookie('state', JSON.stringify({isAuthenticated: req.isAuthenticated(), sessionId: req.sessionID}))
+  .cookie('SID', JSON.stringify(req.sessionID))
+  .json({isAuthenticated: req.isAuthenticated(), sessionId: req.sessionID, user: req.user})
 })
 router.get("/me", isLoggedIn,checkActiveSession, whoami);
 
 router.get("/admin", isAdmin, (req, res) => {
   res.send(req.user);
 });
+
+// google auth
+router.get('/google',passport.authenticate('google', {scope: ['email', 'profile'],successRedirect:'/api/v1/auth/success'}))
+router.get('/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/api/v1/auth/error', successRedirect: '/api/v1/auth/success' }));
 
 export default router;

@@ -131,3 +131,30 @@ export const isOwner = asyncHandler(
   }
 
 )
+
+export const authenticateRequest = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    let token: string | undefined;
+    token = req.cookies.accessToken;
+    if (!token) {
+      const authHeader = req.header("Authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
+    if (!token) {
+      token = req.headers["x-api-key"] as string;
+    }
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request",[{params: "valid api key or token is required"}]);
+    }
+    const decoded: TDecodedToken | string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as TDecodedToken;
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      throw new ApiError(401, "Invalid Access Token");
+    }
+    next();
+  } catch (error: any) {
+    next(error)
+  }
+});

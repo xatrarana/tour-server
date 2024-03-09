@@ -71,27 +71,13 @@ export type TVideoSchema = {
   link: string;
 };
 
-interface Profile {
+export interface TProfile {
   provider: string;
   id: string;
-  displayName: string;
-  username?: string | undefined;
-  name?:
-      | {
-          familyName: string;
-          givenName: string;
-          middleName?: string | undefined;
-      }
-      | undefined;
-  emails?:
-      | Array<{
-          value: string;
-          type?: string | undefined;
-      }>
-      | undefined;
-  photos?:
-      | Array<{
-          value: string;
-      }>
-      | undefined;
+  fullname: string;
+  username?: string,
+  avatar: string | undefined,
+  role: ROLE,
+  refreshToken?: string;
+
 }
