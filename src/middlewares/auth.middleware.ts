@@ -138,8 +138,14 @@ export const authenticateRequest = asyncHandler(async (req: Request, res: Respon
     token = req.cookies.accessToken;
     if (!token) {
       const authHeader = req.header("Authorization");
+      console.log(authHeader)
       if (authHeader?.startsWith("Bearer ")) {
         token = authHeader.substring(7);
+        const decoded: TDecodedToken | string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as TDecodedToken;
+        const user = await User.findById(decoded._id);
+        if (!user) {
+          throw new ApiError(401, "Invalid Access Token");
+        }
       }
     }
     if (!token) {
@@ -148,12 +154,8 @@ export const authenticateRequest = asyncHandler(async (req: Request, res: Respon
     if (!token) {
       throw new ApiError(401, "Unauthorized request",[{params: "valid api key or token is required"}]);
     }
-    const decoded: TDecodedToken | string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as TDecodedToken;
-    const user = await User.findById(decoded._id);
-    if (!user) {
-      throw new ApiError(401, "Invalid Access Token");
-    }
-    next();
+    
+    next()
   } catch (error: any) {
     next(error)
   }
